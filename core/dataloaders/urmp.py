@@ -1,3 +1,4 @@
+from torch.utils import data
 from torch.utils.data import Dataset
 import random
 import os
@@ -49,14 +50,22 @@ class URMPDataset(Dataset):
         assert split in ['train', 'val', 'test'], split
         self.split = split
         self.samples = []
-        for file in os.listdir(self.split_csv_dir):
-            csv_path = os.path.join(self.split_csv_dir, file, f'{split}.csv')
-            # print(csv_path)
-            df = pd.read_csv(str(csv_path))
-            midi_dir = os.path.join(self.opt.Foley_extracted, self.opt.dataset, 'midi', file) 
-            pose_dir = os.path.join(self.opt.Foley_extracted, self.opt.dataset, 'pose', file) 
-            sample = self.build_samples_from_dataframe(self.opt, df, midi_dir, pose_dir)
-            self.samples.append(sample)
+        for dataset in self.split_csv_dir:
+            if dataset == self.split_csv_dir[0]:
+                dataset_name = 'MUSIC'
+                # continue
+            elif dataset == self.split_csv_dir[1]:
+                dataset_name = 'URMP'
+            else:
+                raise Exception
+            for file in os.listdir(dataset):
+                csv_path = os.path.join(dataset, file, f'{split}.csv')
+                # print(csv_path)
+                df = pd.read_csv(str(csv_path))
+                midi_dir = os.path.join(self.opt.Foley_extracted, dataset_name, 'midi', file) 
+                pose_dir = os.path.join(self.opt.Foley_extracted, dataset_name, 'pose', file) 
+                sample = self.build_samples_from_dataframe(self.opt, df, midi_dir, pose_dir, dataset_name)
+                self.samples.append(sample)
 
         # self.samples = self.build_samples_from_dataframe(self.opt, self.df)
         self.samples = [sample for s in self.samples for sample in s]
@@ -126,19 +135,30 @@ class URMPDataset(Dataset):
         return new_midi
 
     @staticmethod
-    def build_samples_from_dataframe(opt, df, midi_dir, pose_dir):
+    def build_samples_from_dataframe(opt, df, midi_dir, pose_dir, dataset_name):
         samples = []
         for _i, row in df.iterrows():
-            track_index = row.track_index
-            instrument = row.instrument
             vid = row.vid
-            piece = row.piece
-            # ScoSep_1_vn_18_Nocturne.mid
-            midi_name = 'ScoSep_'+str(track_index)+'_'+instrument+'_'+'%.2d'%vid+'_'+piece+'.mid'
-            midi_path = os.path.join(midi_dir, midi_name)
-            # PoseSep_1_vn_18_Nocturne.npy
-            pose_name = 'PoseSep_'+str(track_index)+'_'+instrument+'_'+'%.2d'%vid+'_'+piece+'.npy'
-            pose_path = os.path.join(pose_dir, pose_name)
+            if dataset_name == 'URMP':
+                track_index = row.track_index
+                instrument = row.instrument          
+                piece = row.piece
+                # ScoSep_1_vn_18_Nocturne.mid
+                midi_name = 'ScoSep_'+str(track_index)+'_'+instrument+'_'+'%.2d'%vid+'_'+piece+'.mid'
+                midi_path = os.path.join(midi_dir, midi_name)
+                # PoseSep_1_vn_18_Nocturne.npy
+                pose_name = 'PoseSep_'+str(track_index)+'_'+instrument+'_'+'%.2d'%vid+'_'+piece+'.npy'
+                pose_path = os.path.join(pose_dir, pose_name)
+
+            elif dataset_name == 'MUSIC':  
+                # WVeheJFHQS4.mid 
+                midi_name = vid + '.mid'
+                midi_path = os.path.join(midi_dir, midi_name)
+                # WVeheJFHQS4.npy
+                pose_name = vid + '.npy'
+                pose_path = os.path.join(pose_dir, pose_name)
+            else:
+                raise Exception
             sample = Sample(
                 midi_path,
                 pose_path,
@@ -175,7 +195,8 @@ class URMPDataset(Dataset):
         # pose_layout = cfg.get_string('dataset.pose_layout')
         # duplication = cfg.get_int('dataset.duplication')
         # events_per_sec = cfg.get_int('dataset.events_per_sec', 20)
-        split_csv_dir = opt.split_csv_dir
+        split_csv_dir = ['./resources/MUSIC']
+        split_csv_dir.append(opt.split_csv_dir)
         duration = opt.duration
         fps = opt.fps
         pose_layout = opt.pose_layout

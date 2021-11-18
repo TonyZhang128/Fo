@@ -44,5 +44,6 @@ class DataLoaderFactory:
         )
 
         print('Real batch size:', loader.batch_size)
+        print('Dataset size', loader.batch_size * len(loader))
 
         return loader

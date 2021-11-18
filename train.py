@@ -354,9 +354,9 @@ def main():
     # Network Builders
     model_builder = ModelFactory(opt)
     model = model_builder.build(device = opt.device)
-    checkpoint_path = "/data/zyn/Foley_extracted/ckpt/best/loss_3.0825_best.pth"
-    cp = torch.load(checkpoint_path)
-    model.load_state_dict(cp)
+    # checkpoint_path = "/data/zyn/Foley_extracted/ckpt/best/loss_3.0825_best.pth"
+    # cp = torch.load(checkpoint_path)
+    # model.load_state_dict(cp)
     model = torch.nn.DataParallel(model, device_ids=opt.gpu_ids)
 
     # Set up optimizer
