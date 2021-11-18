@@ -192,7 +192,7 @@ class YoutubeDataset(Dataset):
             self,
             midi: List[int],
             control: Optional[np.ndarray] = None
-    ) -> (List[int], Optional[np.ndarray]):
+            ):
         new_midi = [self.SOS_IDX] + midi + [self.EOS_IDX]
         # new_midi = [self.SOS_IDX] + midi
         if control is not None:

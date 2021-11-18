@@ -19,6 +19,7 @@ from core.models.music_transformer_dev.music_transformer import MusicTransformer
 from core import utils
 import os
 from core.utils.urmp import URMPSepInfo
+from options.test_options import TestOptions
 
 DEVICE = torch.device('cuda')
 
@@ -55,19 +56,19 @@ def main(args):
         control_tensor = None
 
     cp = torch.load(checkpoint_path)
-    cfg = ConfigFactory.parse_file(
-        checkpoint_path.parent / 'config.conf'
-    )
-    instrument = cfg.get_string('dataset.instrument', args.instrument)
-    pprint(cfg)
+    # cfg = ConfigFactory.parse_file(
+    #     checkpoint_path.parent / 'config.conf'
+    # )
+    instrument = opt.instrtument
+    # pprint(cfg)
     print('Using Instrument:', instrument)
 
-    model_factory = ModelFactory(cfg)
-    dataloader_factory = DataLoaderFactory(cfg)
+    dataloader_factory = DataLoaderFactory(args)
 
+    model_factory = ModelFactory(args)
     model: MusicTransformer = model_factory.build(device=DEVICE)
-
-    model.load_state_dict(cp['state_dict'])
+    model = torch.nn.DataParallel(model, device_ids=opt.gpu_ids)
+    model.load_state_dict(cp)
     model.eval()
 
     dl = dataloader_factory.build(split='val')
@@ -159,24 +160,26 @@ def main(args):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        'checkpoint'
-    )
-    parser.add_argument(
-        '-o', '--output'
-    )
-    parser.add_argument(
-        '-v', '--video', default=""
-    )
-    parser.add_argument(
-        '-i', '--instrument', default='Acoustic Grand Piano'
-    )
-    parser.add_argument(
-        '-c', '--control', default=None
-    )
-    parser.add_argument(
-        '-oa', '--only_audio', action="store_true"
-    )
-    args = parser.parse_args()
-    main(args)
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument(
+    #     '--checkpoint', default="/data/zyn/Foley_extracted/ckpt/best/loss_3.0825_best.pth"
+    # )
+    # parser.add_argument(
+    #     '-o', '--output', default='./output'
+    # )
+    # parser.add_argument(
+    #     '-v', '--video', default=""
+    # )
+    # parser.add_argument(
+    #     '-i', '--instrument', default='Acoustic Grand Piano'
+    # )
+    # parser.add_argument(
+    #     '-c', '--control', default=None
+    # )
+    # parser.add_argument(
+    #     '-oa', '--only_audio', action="store_true"
+    # )
+    # args = parser.parse_args()
+    opt = TestOptions().parse()
+    opt.split_csv_dir = '/home/zyn/Foley/resources/URMP/vn/val.csv'
+    main(opt)
