@@ -78,7 +78,7 @@ class URMPDataset(Dataset):
             self.samples = self.split_val_samples_into_small_pieces(self.samples, duration)
 
         
-        self.num_frames = int(duration * fps)
+        self.num_frames = int(duration * fps)   
         self.num_events = int(duration * events_per_sec)
         self.body_part = self.BODY_PARTS.get(pose_layout, -1) 
 

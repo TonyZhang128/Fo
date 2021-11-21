@@ -1,6 +1,6 @@
 ------------ Options -------------
 Foley_extracted: /data/zyn/Foley_extracted
-batchSize: 32
+batchSize: 16
 checkpoints_dir: ./checkpoints
 ckpt: /data/zyn/Foley_extracted/ckpt
 dataset: URMP
@@ -11,12 +11,12 @@ emb_dim: 512
 events_per_sec: 80
 experiment_path: None
 fps: 22
-gpu_ids: [0, 1]
+gpu_ids: [1]
 hid_dim: 512
 lr: 0.001
 mode: train
 model_name: music_transformer
-nThreads: 32
+nThreads: 16
 name: Foley music
 num_decoder_layers: 6
 num_encoder_layers: 0
